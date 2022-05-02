@@ -2,19 +2,20 @@ package ru.hse.cs.tetrisar2.websocket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.SubProtocolCapable;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import org.springframework.web.util.HtmlUtils;
+import ru.hse.cs.tetrisar2.service.session.GameSession;
+import ru.hse.cs.tetrisar2.service.session.SessionService;
+import ru.hse.cs.tetrisar2.service.session.UserSession;
 
 import java.io.IOException;
 import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class ServerWebSocketHandler extends TextWebSocketHandler implements SubProtocolCapable {
@@ -22,6 +23,12 @@ public class ServerWebSocketHandler extends TextWebSocketHandler implements SubP
     private static final Logger logger = LoggerFactory.getLogger(ServerWebSocketHandler.class);
 
     static public final Set<WebSocketSession> sessions = new CopyOnWriteArraySet<>();
+
+    @Autowired
+    private SessionService sessionService;
+
+    @Autowired
+    private GameSession gameSession;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -36,7 +43,7 @@ public class ServerWebSocketHandler extends TextWebSocketHandler implements SubP
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         logger.info("Server connection closed: {}", status);
-        sessions.remove(session);
+        sessionService.delUser(session);
     }
 
     @Scheduled(fixedRate = 10000)
@@ -53,11 +60,19 @@ public class ServerWebSocketHandler extends TextWebSocketHandler implements SubP
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String request = message.getPayload();
-        logger.info("Server received: {}", request);
+        Optional<UserSession> userSessionOptional = sessionService.usersOnline.stream().filter(i -> i.getSession() == session).findFirst();
 
-        String response = String.format("response from server to '%s'", HtmlUtils.htmlEscape(request));
-        logger.info("Server sends: {}", response);
-        session.sendMessage(new TextMessage(response));
+        if (userSessionOptional.isEmpty()) {
+            sessionService.addUser(session, request);
+            logger.info("Server received add user: {}", request);
+            return;
+        }
+        UserSession userSession = userSessionOptional.get();
+        switch (userSession.status) {
+            case ONLINE -> sessionService.onlineRouter(userSession, request);
+            case READY, REQUEST, PLAY -> gameSession.gameRouter(userSession, request);
+        }
+
     }
 
     @Override

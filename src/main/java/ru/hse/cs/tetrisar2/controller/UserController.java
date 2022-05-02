@@ -9,6 +9,7 @@ import ru.hse.cs.tetrisar2.exception.UserAlredyExistException;
 import ru.hse.cs.tetrisar2.exception.UserNotFoundException;
 import ru.hse.cs.tetrisar2.entity.UserEntity;
 import ru.hse.cs.tetrisar2.service.UserService;
+import ru.hse.cs.tetrisar2.service.session.SessionService;
 import ru.hse.cs.tetrisar2.websocket.ServerWebSocketHandler;
 
 import java.time.LocalTime;
@@ -44,7 +45,7 @@ public class UserController {
     }
 
     @GetMapping("/ws")
-    public ResponseEntity getws(@RequestParam Long id){
+    public ResponseEntity getWS(@RequestParam Long id){
         try {
             for (WebSocketSession session : ServerWebSocketHandler.sessions) {
                 if (session.isOpen()) {
@@ -55,6 +56,15 @@ public class UserController {
             return ResponseEntity.ok(userService.getUser(id));
         } catch (UserNotFoundException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error");
+        }
+    }
+
+    @GetMapping("/online")
+    public ResponseEntity getUsersOnline(){
+        try {
+            return ResponseEntity.ok(userService.online());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error");
         }
