@@ -1,9 +1,7 @@
 package ru.hse.cs.tetrisar2.service.session;
 
 import org.springframework.web.socket.WebSocketSession;
-import ru.hse.cs.tetrisar2.Model.User;
-
-import java.util.Objects;
+import ru.hse.cs.tetrisar2.model.User;
 
 public class UserSession {
     private final User user;

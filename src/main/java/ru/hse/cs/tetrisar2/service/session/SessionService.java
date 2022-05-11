@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import ru.hse.cs.tetrisar2.Model.User;
+import ru.hse.cs.tetrisar2.model.User;
 import ru.hse.cs.tetrisar2.entity.UserEntity;
 import ru.hse.cs.tetrisar2.respository.UserRepo;
 
@@ -32,12 +32,10 @@ public class SessionService {
          UserEntity userEntity = userRepo.findByUsername(login);
          if (userEntity == null){
              session.sendMessage(new TextMessage("Такой пользователь не существует"));
-             session.close();
              return;
          }
          if (!Objects.equals(userEntity.getPassword(), password)) {
              session.sendMessage(new TextMessage("Пароль не верный"));
-             session.close();
              return;
          }
 
@@ -46,7 +44,6 @@ public class SessionService {
             session.sendMessage(new TextMessage("Соеденение установленно"));
         } else {
             session.sendMessage(new TextMessage("У пользователя есть активная сессия"));
-            session.close();
         }
     }
 

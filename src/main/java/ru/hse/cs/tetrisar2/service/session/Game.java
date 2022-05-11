@@ -8,6 +8,8 @@ public class Game {
 
     private final UserSession fist;
     private final UserSession second;
+    public boolean isReadyFist = false;
+    public boolean isReadySecond = false;
 
     public Game(UserSession fist, UserSession second) {
         this.fist = fist;
@@ -26,9 +28,22 @@ public class Game {
         return second;
     }
 
-    public void cancel(){
+    public void cancel() throws IOException {
         fist.status = Status.ONLINE;
         second.status = Status.ONLINE;
+        fist.getSession().sendMessage(new TextMessage("cancel"));
+        second.getSession().sendMessage(new TextMessage("cancel"));
+    }
+
+    public void cancel(UserSession user) throws IOException {
+        if (fist == user){
+            second.status = Status.ONLINE;
+            second.getSession().sendMessage(new TextMessage("cancel"));
+        } else {
+            fist.status = Status.ONLINE;
+            fist.getSession().sendMessage(new TextMessage("cancel"));
+        }
+
     }
     //    public String getId() {
 //        return fist.getId() + "-" + second.getId();

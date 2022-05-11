@@ -4,7 +4,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -23,9 +25,17 @@ public class GameSession {
 
     private void cancelGame(Game game) throws IOException {
         game.cancel();
-        game.getFist().getSession().sendMessage(new TextMessage("cancel"));
-        game.getSecond().getSession().sendMessage(new TextMessage("cancel"));
         games.remove(game);
+    }
+
+    private String generationShape(){
+        StringBuilder str = new StringBuilder();
+        str.append("generation: ");
+        Random random = new Random();
+        for (int i = 0; i < 30; i++) {
+            str.append(random.nextInt(1)).append(" ");
+        }
+        return str.toString();
     }
 
 
@@ -38,6 +48,9 @@ public class GameSession {
                     game.getSecond().status = Status.PLAY;
                     game.getFist().getSession().sendMessage(new TextMessage("start"));
                     game.getSecond().getSession().sendMessage(new TextMessage("start"));
+                    String string = generationShape();
+                    game.getFist().getSession().sendMessage(new TextMessage(string));
+                    game.getSecond().getSession().sendMessage(new TextMessage(string));
                 } else if (Objects.equals(str, "cancel")) {
                     cancelGame(game);
                 }
@@ -46,12 +59,29 @@ public class GameSession {
             case PLAY -> {
                 if (Objects.equals(str, "exit")){
                     cancelGame(game);
-                    return;
-                }
-                if (game.getFist() == user) {
-                    game.getSecond().getSession().sendMessage(new TextMessage(str));
+                } else if  (Objects.equals(str, "finish")){
+                    game.isReadyFist = false;
+                    game.isReadySecond = false;
+                } else if (Objects.equals(str, "generation")){
+                    String string = generationShape();
+                    game.getFist().getSession().sendMessage(new TextMessage(string));
+                    game.getSecond().getSession().sendMessage(new TextMessage(string));
+                } else if (Objects.equals(str, "ready")){
+                    if (game.getFist() == user) {
+                        game.isReadyFist = true;
+                    } else {
+                        game.isReadySecond = true;
+                    }
+                    if (game.isReadyFist && game.isReadySecond){
+                        game.getFist().getSession().sendMessage(new TextMessage("game"));
+                        game.getSecond().getSession().sendMessage(new TextMessage("game"));
+                    }
                 } else {
-                    game.getFist().getSession().sendMessage(new TextMessage(str));
+                    if (game.getFist() == user) {
+                        game.getSecond().getSession().sendMessage(new TextMessage(str));
+                    } else {
+                        game.getFist().getSession().sendMessage(new TextMessage(str));
+                    }
                 }
             }
         }

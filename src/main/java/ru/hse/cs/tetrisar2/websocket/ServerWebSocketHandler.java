@@ -9,6 +9,7 @@ import org.springframework.web.socket.SubProtocolCapable;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import ru.hse.cs.tetrisar2.service.session.Game;
 import ru.hse.cs.tetrisar2.service.session.GameSession;
 import ru.hse.cs.tetrisar2.service.session.SessionService;
 import ru.hse.cs.tetrisar2.service.session.UserSession;
@@ -34,15 +35,17 @@ public class ServerWebSocketHandler extends TextWebSocketHandler implements SubP
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         logger.info("Server connection opened");
         sessions.add(session);
-
         TextMessage message = new TextMessage("one-time message from server");
         logger.info("Server sends: {}", message);
         session.sendMessage(message);
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws IOException {
         logger.info("Server connection closed: {}", status);
+        Optional<UserSession> userSessionOptional = sessionService.usersOnline.stream().filter(i -> i.getSession() == session).findFirst();
+        Optional<Game> game = gameSession.games.stream().filter(i -> i.getFist() == userSessionOptional.get() || i.getSecond() == userSessionOptional.get()).findFirst();
+        game.get().cancel(userSessionOptional.get());
         sessionService.delUser(session);
     }
 
@@ -68,6 +71,7 @@ public class ServerWebSocketHandler extends TextWebSocketHandler implements SubP
             return;
         }
         UserSession userSession = userSessionOptional.get();
+        logger.info("{} message: {}", userSession.getUser().getUsername(), request);
         switch (userSession.status) {
             case ONLINE -> sessionService.onlineRouter(userSession, request);
             case READY, REQUEST, PLAY -> gameSession.gameRouter(userSession, request);

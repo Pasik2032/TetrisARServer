@@ -1,4 +1,4 @@
-package ru.hse.cs.tetrisar2.Model;
+package ru.hse.cs.tetrisar2.model;
 
 import ru.hse.cs.tetrisar2.entity.UserEntity;
 

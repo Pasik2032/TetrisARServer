@@ -2,7 +2,7 @@ package ru.hse.cs.tetrisar2.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.hse.cs.tetrisar2.Model.User;
+import ru.hse.cs.tetrisar2.model.User;
 import ru.hse.cs.tetrisar2.entity.UserEntity;
 import ru.hse.cs.tetrisar2.exception.UserAlredyExistException;
 import ru.hse.cs.tetrisar2.exception.UserNotFoundException;
@@ -11,7 +11,6 @@ import ru.hse.cs.tetrisar2.service.session.SessionService;
 import ru.hse.cs.tetrisar2.service.session.UserSession;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Service
