@@ -45,7 +45,9 @@ public class ServerWebSocketHandler extends TextWebSocketHandler implements SubP
         logger.info("Server connection closed: {}", status);
         Optional<UserSession> userSessionOptional = sessionService.usersOnline.stream().filter(i -> i.getSession() == session).findFirst();
         Optional<Game> game = gameSession.games.stream().filter(i -> i.getFist() == userSessionOptional.get() || i.getSecond() == userSessionOptional.get()).findFirst();
-        game.get().cancel(userSessionOptional.get());
+        if (game.isPresent()) {
+            game.get().cancel(userSessionOptional.get());
+        }
         sessionService.delUser(session);
     }
 

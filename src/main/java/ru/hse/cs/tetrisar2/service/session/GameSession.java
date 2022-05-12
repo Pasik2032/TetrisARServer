@@ -33,7 +33,7 @@ public class GameSession {
         str.append("generation: ");
         Random random = new Random();
         for (int i = 0; i < 30; i++) {
-            str.append(random.nextInt(1)).append(" ");
+            str.append(random.nextInt(6)).append(" ");
         }
         return str.toString();
     }
