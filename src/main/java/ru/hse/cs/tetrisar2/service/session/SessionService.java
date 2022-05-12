@@ -69,6 +69,8 @@ public class SessionService {
                  return;
              }
              gameSession.createGame(user, second.get());
+         } else  if (Objects.equals(str, "exit")){
+             usersOnline.remove(user);
          }
     }
 
